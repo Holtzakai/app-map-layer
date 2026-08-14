@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "title": "app-map-layer sample catalog",
+  "description": "架空の動作確認用データです。防災判断には使用できません。",
+  "datasets": [
+    {
+      "id": "sample-shelters",
+      "title": "サンプル避難場所",
+      "description": "検索動作確認用の架空施設",
+      "path": "datasets/sample-shelters.geojson",
+      "featureTypes": ["shelter"],
+      "searchProperties": ["name", "address", "hazards", "notes"],
+      "source": {
+        "provider": "app-map-layer project",
+        "originalAuthority": "app-map-layer project",
+        "url": "https://example.invalid/app-map-layer/sample-shelters",
+        "license": "CC0-1.0",
+        "retrievedAt": "2026-08-14",
+        "updatedAt": "2026-08-14",
+        "notice": "架空のサンプルデータです。実在の避難場所ではありません。"
+      }
+    },
+    {
+      "id": "sample-risk-zones",
+      "title": "サンプルリスク区域",
+      "description": "検索動作確認用の架空区域",
+      "path": "datasets/sample-risk-zones.geojson",
+      "featureTypes": ["risk-zone"],
+      "searchProperties": ["name", "hazard", "level", "notes"],
+      "source": {
+        "provider": "app-map-layer project",
+        "originalAuthority": "app-map-layer project",
+        "url": "https://example.invalid/app-map-layer/sample-risk-zones",
+        "license": "CC0-1.0",
+        "retrievedAt": "2026-08-14",
+        "updatedAt": "2026-08-14",
+        "notice": "架空のサンプルデータです。実際の危険区域ではありません。"
+      }
+    }
+  ]
+}

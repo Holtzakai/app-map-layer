@@ -1,0 +1,108 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, "Hiragino Sans", "Yu Gothic", sans-serif;
+  color: #16201d;
+  background: #eef2ef;
+  font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+
+body { margin: 0; }
+
+main {
+  width: min(880px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 64px 0 40px;
+}
+
+header { margin-bottom: 32px; }
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #26725e;
+  font-size: .78rem;
+  font-weight: 750;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.4rem, 8vw, 5rem);
+  letter-spacing: -.06em;
+}
+
+header > p:last-child {
+  max-width: 620px;
+  margin: 16px 0 0;
+  color: #56635f;
+  font-size: 1.08rem;
+}
+
+aside {
+  margin-bottom: 28px;
+  padding: 16px 18px;
+  border-left: 4px solid #d9822b;
+  border-radius: 4px 12px 12px 4px;
+  background: #fff6e9;
+}
+
+form, section {
+  margin-bottom: 24px;
+  padding: 24px;
+  border: 1px solid #d9e0dc;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgb(35 59 51 / 6%);
+}
+
+label { display: block; margin-bottom: 10px; font-weight: 700; }
+
+.search-row { display: flex; gap: 10px; }
+
+input, button {
+  min-height: 48px;
+  border-radius: 10px;
+  font: inherit;
+}
+
+input {
+  min-width: 0;
+  flex: 1;
+  padding: 0 14px;
+  border: 1px solid #aebbb6;
+}
+
+input:focus { outline: 3px solid rgb(38 114 94 / 22%); border-color: #26725e; }
+
+button {
+  padding: 0 20px;
+  border: 0;
+  color: #fff;
+  background: #17634f;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+button:hover { background: #0f4f3f; }
+
+.section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+h2 { margin: 0 0 8px; }
+#result-count { color: #5d6965; }
+
+article { padding: 18px 0; border-top: 1px solid #e3e8e5; }
+article h3 { margin: 0; font-size: 1.08rem; }
+article p { margin: 6px 0 0; }
+.meta, .source { color: #65716d; font-size: .84rem; }
+.empty { color: #65716d; }
+
+footer { display: flex; gap: 18px; padding: 8px 4px; }
+a { color: #17634f; }
+
+@media (max-width: 560px) {
+  main { padding-top: 36px; }
+  .search-row { flex-direction: column; }
+  button { width: 100%; }
+  form, section { padding: 18px; }
+}

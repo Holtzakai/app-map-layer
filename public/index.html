@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="複数GeoJSONを横断検索する静的APIのプロトタイプ">
+    <title>app-map-layer</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">GeoJSON cross-search prototype</p>
+        <h1>app-map-layer</h1>
+        <p>複数の地理データを、出典を保ったまま一度に検索します。</p>
+      </header>
+
+      <aside role="note">
+        <strong>デモ用の架空データです。</strong> 実際の避難・防災判断には使用できません。
+      </aside>
+
+      <form id="search-form">
+        <label for="query">キーワード</label>
+        <div class="search-row">
+          <input id="query" name="query" type="search" placeholder="例: 洪水、熱中症、中央" autocomplete="off">
+          <button type="submit">横断検索</button>
+        </div>
+      </form>
+
+      <section aria-labelledby="result-heading">
+        <div class="section-heading">
+          <h2 id="result-heading">検索結果</h2>
+          <span id="result-count" aria-live="polite">読み込み中</span>
+        </div>
+        <div id="results"></div>
+      </section>
+
+      <footer>
+        <a href="./api/v1/catalog.json">データカタログ</a>
+        <a href="./api/v1/all.geojson">全GeoJSON</a>
+      </footer>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

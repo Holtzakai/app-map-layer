@@ -1,0 +1,35 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "sample-shelter-001",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [139.7588, 35.6824]
+      },
+      "properties": {
+        "type": "shelter",
+        "name": "サンプル中央広場",
+        "address": "サンプル区中央1-1",
+        "hazards": ["earthquake", "flood"],
+        "notes": "架空施設。洪水・地震という語の検索確認用。"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "sample-shelter-002",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [139.7721, 35.6891]
+      },
+      "properties": {
+        "type": "shelter",
+        "name": "サンプル東公園",
+        "address": "サンプル区東2-3",
+        "hazards": ["earthquake"],
+        "notes": "架空施設。"
+      }
+    }
+  ]
+}

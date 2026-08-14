@@ -1,0 +1,35 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "sample-risk-001",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[139.7500, 35.6760], [139.7650, 35.6760], [139.7650, 35.6860], [139.7500, 35.6860], [139.7500, 35.6760]]]
+      },
+      "properties": {
+        "type": "risk-zone",
+        "name": "サンプル洪水想定区域",
+        "hazard": "flood",
+        "level": "sample-only",
+        "notes": "架空区域。洪水という語の横断検索確認用。"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "sample-risk-002",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[139.7680, 35.6840], [139.7790, 35.6840], [139.7790, 35.6940], [139.7680, 35.6940], [139.7680, 35.6840]]]
+      },
+      "properties": {
+        "type": "risk-zone",
+        "name": "サンプル暑熱注意区域",
+        "hazard": "heat",
+        "level": "sample-only",
+        "notes": "架空区域。熱中症リスクの拡張確認用。"
+      }
+    }
+  ]
+}

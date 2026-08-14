@@ -1,0 +1,17 @@
+{
+  "name": "app-map-layer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Search across provenance-aware GeoJSON datasets on a static host.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/check-data.mjs",
+    "test": "node --test",
+    "verify": "npm run check && npm test && npm run build"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT"
+}
