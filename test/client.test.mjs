@@ -26,10 +26,17 @@ test("client loads the catalog and searches selected datasets", async () => {
   };
 
   const client = await createClient({ baseUrl: "https://example.test/app-map-layer/", fetchImpl });
-  const result = await client.search({ q: "洪水", datasets: "sample-risk-zones" });
+  const result = await client.searchAtLocation({
+    longitude: 139.7588,
+    latitude: 35.6824,
+    radiusMeters: 0,
+    q: "洪水",
+    datasets: "sample-risk-zones"
+  });
 
   assert.equal(result.total, 1);
   assert.equal(result.features[0].id, "sample-risk-001");
+  assert.equal(result.features[0].appMapLayer.spatialRelation, "contains");
   assert.equal(requested.length, 2);
   assert.match(requested[0], /app-map-layer\/api\/v1\/catalog\.json$/u);
 });

@@ -59,6 +59,25 @@ form, section {
 
 label { display: block; margin-bottom: 10px; font-weight: 700; }
 
+fieldset {
+  margin: 0 0 20px;
+  padding: 0;
+  border: 0;
+}
+
+legend { margin-bottom: 12px; font-weight: 750; }
+
+.coordinate-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.coordinate-grid input {
+  width: 100%;
+  margin-top: 8px;
+}
+
 .search-row { display: flex; gap: 10px; }
 
 input, button {
@@ -87,6 +106,21 @@ button {
 
 button:hover { background: #0f4f3f; }
 
+button.secondary {
+  min-height: 40px;
+  margin-top: 2px;
+  padding: 0 14px;
+  color: #17634f;
+  border: 1px solid #8eb0a6;
+  background: #f3faf7;
+}
+
+button.secondary:hover { background: #e5f3ee; }
+
+button.submit { width: 100%; margin-top: 16px; }
+
+.status { min-height: 1.2em; margin: 8px 0 0; color: #65716d; font-size: .84rem; }
+
 .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
 h2 { margin: 0 0 8px; }
 #result-count { color: #5d6965; }
@@ -105,4 +139,5 @@ a { color: #17634f; }
   .search-row { flex-direction: column; }
   button { width: 100%; }
   form, section { padding: 18px; }
+  .coordinate-grid { grid-template-columns: 1fr; gap: 2px; }
 }

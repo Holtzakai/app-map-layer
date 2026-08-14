@@ -1,4 +1,4 @@
-import { searchFeatureCollections } from "./search.mjs";
+import { searchAtLocation, searchFeatureCollections } from "./search.mjs";
 
 function joinUrl(baseUrl, path) {
   return `${String(baseUrl).replace(/\/$/u, "")}/${String(path).replace(/^\//u, "")}`;
@@ -22,18 +22,26 @@ export async function createClient({ baseUrl = ".", fetchImpl = globalThis.fetch
     return cache.get(dataset.id);
   }
 
+  async function loadSelectedDatasets(options) {
+    const selected = options.datasets
+      ? new Set((Array.isArray(options.datasets) ? options.datasets : [options.datasets]).map(String))
+      : null;
+    const metadata = catalog.datasets.filter((dataset) => !selected || selected.has(dataset.id));
+    return Promise.all(metadata.map(async (dataset) => ({
+      dataset,
+      collection: await loadDataset(dataset)
+    })));
+  }
+
   return {
     catalog,
     async search(options = {}) {
-      const selected = options.datasets
-        ? new Set((Array.isArray(options.datasets) ? options.datasets : [options.datasets]).map(String))
-        : null;
-      const metadata = catalog.datasets.filter((dataset) => !selected || selected.has(dataset.id));
-      const collections = await Promise.all(metadata.map(async (dataset) => ({
-        dataset,
-        collection: await loadDataset(dataset)
-      })));
+      const collections = await loadSelectedDatasets(options);
       return searchFeatureCollections(collections, options);
+    },
+    async searchAtLocation(options = {}) {
+      const collections = await loadSelectedDatasets(options);
+      return searchAtLocation(collections, options);
     }
   };
 }

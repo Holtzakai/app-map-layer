@@ -1,14 +1,15 @@
 # app-map-layer
 
-複数の GeoJSON データセットを、出典情報を保ったまま横断検索するための小さな静的 API です。GitHub Pages のようなサーバー処理のない環境で動作します。
+緯度・経度で指定した地点に関係する情報を、複数の GeoJSON データセットから出典情報を保ったまま横断検索するための小さな静的 API です。GitHub Pages のようなサーバー処理のない環境で動作します。
 
 > [!IMPORTANT]
 > リポジトリ内のデータは動作確認用の架空サンプルです。実際の避難・防災判断には使用できません。
 
 ## コア機能
 
-- 複数 GeoJSON のカタログ化と横断検索
-- キーワード、データセット、feature 種別、bbox、現在地からの距離による絞り込み
+- 指定地点を含む Polygon / MultiPolygon の横断検索
+- 指定地点から一定距離内にある Point / Line 系 geometry の横断検索
+- キーワード、データセット、feature 種別による追加の絞り込み
 - 検索結果にデータセット単位の出典・ライセンス・取得日を付与
 - GitHub Pages から配信できる静的 JSON API と JavaScript SDK の生成
 
@@ -30,14 +31,24 @@ GitHub Pages は動的な HTTP API を実行できないため、検索処理は
 import { createClient } from "./sdk/client.js";
 
 const client = await createClient({ baseUrl: "." });
-const result = await client.search({
-  q: "洪水",
-  bbox: [139.74, 35.67, 139.78, 35.70],
+const result = await client.searchAtLocation({
+  longitude: 139.7588,
+  latitude: 35.6824,
+  radiusMeters: 1000,
+  q: "洪水", // 任意の追加フィルター
   limit: 20
 });
 ```
 
-返却値は GeoJSON `FeatureCollection` です。各 feature の `appMapLayer` に `datasetId`、出典、ライセンス、検索スコア等が入ります。
+返却値は GeoJSON `FeatureCollection` です。各 feature の `appMapLayer` に `datasetId`、出典、ライセンス、地点との関係が入ります。
+
+| `appMapLayer` | 意味 |
+| --- | --- |
+| `spatialRelation: "contains"` | 指定地点が Polygon / MultiPolygon 内にある |
+| `spatialRelation: "nearby"` | geometry が指定半径内にある |
+| `distanceMeters` | 地点からgeometryまでの最短距離。内包時は `0` |
+
+従来の `client.search()` は地点を使わないキーワード・bbox検索用の補助機能として残しています。
 
 ## データセットの追加
 

@@ -50,10 +50,6 @@ function boundsIntersect(left, right) {
   return left[0] <= right[2] && left[2] >= right[0] && left[1] <= right[3] && left[3] >= right[1];
 }
 
-function centerOf(bounds) {
-  return [(bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2];
-}
-
 function haversineKm([lon1, lat1], [lon2, lat2]) {
   const radians = (degrees) => degrees * Math.PI / 180;
   const deltaLat = radians(lat2 - lat1);
@@ -61,6 +57,110 @@ function haversineKm([lon1, lat1], [lon2, lat2]) {
   const a = Math.sin(deltaLat / 2) ** 2
     + Math.cos(radians(lat1)) * Math.cos(radians(lat2)) * Math.sin(deltaLon / 2) ** 2;
   return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(a));
+}
+
+function pointOnSegment(point, start, end, tolerance = 1e-10) {
+  const squaredLength = (end[0] - start[0]) ** 2 + (end[1] - start[1]) ** 2;
+  if (squaredLength === 0) {
+    return Math.abs(point[0] - start[0]) <= tolerance && Math.abs(point[1] - start[1]) <= tolerance;
+  }
+  const cross = (point[1] - start[1]) * (end[0] - start[0])
+    - (point[0] - start[0]) * (end[1] - start[1]);
+  if (Math.abs(cross) > tolerance) return false;
+  const dot = (point[0] - start[0]) * (end[0] - start[0])
+    + (point[1] - start[1]) * (end[1] - start[1]);
+  if (dot < 0) return false;
+  return dot <= squaredLength;
+}
+
+function pointInRing(point, ring) {
+  let inside = false;
+  for (let index = 0, previous = ring.length - 1; index < ring.length; previous = index++) {
+    const start = ring[previous];
+    const end = ring[index];
+    if (pointOnSegment(point, start, end)) return true;
+    const crosses = (end[1] > point[1]) !== (start[1] > point[1])
+      && point[0] < ((start[0] - end[0]) * (point[1] - end[1])) / (start[1] - end[1]) + end[0];
+    if (crosses) inside = !inside;
+  }
+  return inside;
+}
+
+function pointInPolygon(point, rings) {
+  if (!rings?.length || !pointInRing(point, rings[0])) return false;
+  return !rings.slice(1).some((hole) => pointInRing(point, hole));
+}
+
+function segmentDistanceMeters(point, start, end) {
+  const radians = (degrees) => degrees * Math.PI / 180;
+  const latitudeScale = EARTH_RADIUS_KM * 1000;
+  const longitudeScale = latitudeScale * Math.cos(radians(point[1]));
+  const project = ([longitude, latitude]) => [
+    radians(longitude - point[0]) * longitudeScale,
+    radians(latitude - point[1]) * latitudeScale
+  ];
+  const [startX, startY] = project(start);
+  const [endX, endY] = project(end);
+  const deltaX = endX - startX;
+  const deltaY = endY - startY;
+  const squaredLength = deltaX ** 2 + deltaY ** 2;
+  if (squaredLength === 0) return Math.hypot(startX, startY);
+  const ratio = Math.max(0, Math.min(1, -(startX * deltaX + startY * deltaY) / squaredLength));
+  return Math.hypot(startX + ratio * deltaX, startY + ratio * deltaY);
+}
+
+function lineDistanceMeters(point, coordinates) {
+  if (!coordinates?.length) return Infinity;
+  if (coordinates.length === 1) return haversineKm(point, coordinates[0]) * 1000;
+  let distance = Infinity;
+  for (let index = 1; index < coordinates.length; index += 1) {
+    distance = Math.min(distance, segmentDistanceMeters(point, coordinates[index - 1], coordinates[index]));
+  }
+  return distance;
+}
+
+function polygonDistanceMeters(point, rings) {
+  if (pointInPolygon(point, rings)) return { spatialRelation: "contains", distanceMeters: 0 };
+  const distanceMeters = Math.min(...(rings ?? []).map((ring) => lineDistanceMeters(point, ring)));
+  return { spatialRelation: "nearby", distanceMeters };
+}
+
+function closestSpatialResult(results) {
+  const valid = results.filter((result) => Number.isFinite(result?.distanceMeters));
+  if (!valid.length) return null;
+  return valid.reduce((closest, result) => {
+    if (result.spatialRelation === "contains" && closest.spatialRelation !== "contains") return result;
+    if (result.spatialRelation !== "contains" && closest.spatialRelation === "contains") return closest;
+    return result.distanceMeters < closest.distanceMeters ? result : closest;
+  });
+}
+
+function geometrySpatialRelation(geometry, point) {
+  if (!geometry) return null;
+  switch (geometry.type) {
+    case "Point":
+      return { spatialRelation: "nearby", distanceMeters: haversineKm(point, geometry.coordinates) * 1000 };
+    case "MultiPoint":
+      return closestSpatialResult(geometry.coordinates.map((coordinate) => ({
+        spatialRelation: "nearby",
+        distanceMeters: haversineKm(point, coordinate) * 1000
+      })));
+    case "LineString":
+      return { spatialRelation: "nearby", distanceMeters: lineDistanceMeters(point, geometry.coordinates) };
+    case "MultiLineString":
+      return closestSpatialResult(geometry.coordinates.map((line) => ({
+        spatialRelation: "nearby",
+        distanceMeters: lineDistanceMeters(point, line)
+      })));
+    case "Polygon":
+      return polygonDistanceMeters(point, geometry.coordinates);
+    case "MultiPolygon":
+      return closestSpatialResult(geometry.coordinates.map((polygon) => polygonDistanceMeters(point, polygon)));
+    case "GeometryCollection":
+      return closestSpatialResult(geometry.geometries.map((item) => geometrySpatialRelation(item, point)));
+    default:
+      return null;
+  }
 }
 
 function asStringSet(value) {
@@ -128,7 +228,8 @@ export function searchFeatureCollections(datasets, options = {}) {
       if (score == null) continue;
       const featureBounds = geometryBounds(feature.geometry);
       if (bbox && (!featureBounds || !boundsIntersect(featureBounds, bbox))) continue;
-      const distanceKm = near && featureBounds ? haversineKm(near, centerOf(featureBounds)) : null;
+      const spatial = near ? geometrySpatialRelation(feature.geometry, near) : null;
+      const distanceKm = spatial ? spatial.distanceMeters / 1000 : null;
       if (radiusKm != null && (distanceKm == null || distanceKm > radiusKm)) continue;
 
       matches.push({
@@ -138,14 +239,23 @@ export function searchFeatureCollections(datasets, options = {}) {
           datasetTitle: dataset.title,
           source: structuredClone(dataset.source),
           score,
-          ...(distanceKm == null ? {} : { distanceKm: Number(distanceKm.toFixed(3)) })
+          ...(distanceKm == null ? {} : {
+            spatialRelation: spatial.spatialRelation,
+            distanceMeters: Math.round(spatial.distanceMeters),
+            distanceKm: Number(distanceKm.toFixed(3))
+          })
         }
       });
     }
   }
 
   matches.sort((left, right) => {
-    if (near) return left.appMapLayer.distanceKm - right.appMapLayer.distanceKm;
+    if (near) {
+      const leftContains = left.appMapLayer.spatialRelation === "contains";
+      const rightContains = right.appMapLayer.spatialRelation === "contains";
+      if (leftContains !== rightContains) return leftContains ? -1 : 1;
+      return left.appMapLayer.distanceKm - right.appMapLayer.distanceKm;
+    }
     if (tokens.length) return right.appMapLayer.score - left.appMapLayer.score;
     return `${left.appMapLayer.datasetId}:${left.id ?? ""}`.localeCompare(`${right.appMapLayer.datasetId}:${right.id ?? ""}`);
   });
@@ -168,4 +278,36 @@ export function searchFeatureCollections(datasets, options = {}) {
   };
 }
 
-export { geometryBounds, haversineKm };
+export function searchAtLocation(datasets, options = {}) {
+  const longitude = Number(options.longitude ?? options.location?.[0]);
+  const latitude = Number(options.latitude ?? options.location?.[1]);
+  if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
+    throw new TypeError("longitude and latitude are required");
+  }
+  if (longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90) {
+    throw new RangeError("longitude or latitude is outside the valid range");
+  }
+  const radiusMeters = Number(options.radiusMeters ?? 0);
+  if (!Number.isFinite(radiusMeters) || radiusMeters < 0) {
+    throw new RangeError("radiusMeters must be a non-negative number");
+  }
+
+  const result = searchFeatureCollections(datasets, {
+    ...options,
+    near: [longitude, latitude],
+    radiusKm: radiusMeters / 1000
+  });
+  result.query = {
+    longitude,
+    latitude,
+    radiusMeters,
+    q: options.q ?? "",
+    datasets: result.query.datasets,
+    types: result.query.types,
+    limit: result.query.limit,
+    offset: result.query.offset
+  };
+  return result;
+}
+
+export { geometryBounds, geometrySpatialRelation, haversineKm };

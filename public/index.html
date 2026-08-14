@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="複数GeoJSONを横断検索する静的APIのプロトタイプ">
+    <meta name="description" content="地点に関係する情報を複数GeoJSONから横断検索する静的APIのプロトタイプ">
     <title>app-map-layer</title>
     <link rel="stylesheet" href="./styles.css">
   </head>
@@ -12,7 +12,7 @@
       <header>
         <p class="eyebrow">GeoJSON cross-search prototype</p>
         <h1>app-map-layer</h1>
-        <p>複数の地理データを、出典を保ったまま一度に検索します。</p>
+        <p>指定した地点を含む区域と、周辺の地点・経路情報を、複数の地理データから一度に検索します。</p>
       </header>
 
       <aside role="note">
@@ -20,11 +20,19 @@
       </aside>
 
       <form id="search-form">
-        <label for="query">キーワード</label>
-        <div class="search-row">
-          <input id="query" name="query" type="search" placeholder="例: 洪水、熱中症、中央" autocomplete="off">
-          <button type="submit">横断検索</button>
-        </div>
+        <fieldset>
+          <legend>検索地点</legend>
+          <div class="coordinate-grid">
+            <label>経度<input id="longitude" name="longitude" type="number" value="139.7588" min="-180" max="180" step="any" required></label>
+            <label>緯度<input id="latitude" name="latitude" type="number" value="35.6824" min="-90" max="90" step="any" required></label>
+            <label>検索半径（m）<input id="radius" name="radius" type="number" value="1000" min="0" max="100000" step="100" required></label>
+          </div>
+          <button id="use-current-location" class="secondary" type="button">現在地を使う</button>
+          <p id="location-status" class="status" aria-live="polite"></p>
+        </fieldset>
+        <label for="query">キーワード（任意）</label>
+        <input id="query" name="query" type="search" placeholder="例: 洪水、熱中症、中央" autocomplete="off">
+        <button class="submit" type="submit">この地点を横断検索</button>
       </form>
 
       <section aria-labelledby="result-heading">
